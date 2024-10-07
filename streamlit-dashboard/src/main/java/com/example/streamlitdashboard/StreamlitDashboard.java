@@ -75,8 +75,8 @@ public class StreamlitDashboard {
 }
 
 /*
-C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com
+C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example
 
-javac -d . StreamlitDashboard.java
+javac StreamlitDashboard.java
 java -cp . com.example.streamlitdashboard.StreamlitDashboard
 */
