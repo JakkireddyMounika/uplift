@@ -141,24 +141,35 @@ public class MainFrame extends JFrame {
     private void connectToDatabase() {
         try {
             Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db");
-            createUsersTable(); // Create table if it doesn't exist
+            String dbUrl = "jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db";
+            
+            // Connect to the database
+            conn = DriverManager.getConnection(dbUrl);
+            
+            if (conn != null) {
+                System.out.println("Connected to SQLite database.");
+                createUsersTable(); // Create 'users' table if it doesn't exist
+            } else {
+                System.out.println("Failed to connect to SQLite database.");
+            }
+    
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error connecting to database");
             System.exit(1);
         }
     }
-
-    // Create 'users' table if it doesn't exist
+    
     private void createUsersTable() {
         try {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS users ("
                     + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
                     + "username TEXT NOT NULL UNIQUE, "
                     + "password TEXT NOT NULL)";
+            
             try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)) {
                 pstmt.executeUpdate();
+                System.out.println("Table 'users' should now be created (or already exists).");
             }
         } catch (SQLException e) {
             System.out.println("Error creating table: " + e.getMessage());
@@ -166,7 +177,8 @@ public class MainFrame extends JFrame {
             System.exit(1);
         }
     }
-
+    
+    
     private void login() {
         String username = loginUsernameField.getText();
         String password = new String(loginPasswordField.getPassword());
@@ -209,7 +221,7 @@ public class MainFrame extends JFrame {
 
     private boolean authenticateUser(String username, String password) {
         try {
-            String query = "SELECT * FROM user WHERE username = ? AND password = ?";
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
             boolean isAuthenticated;
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 pstmt.setString(1, username);
@@ -227,7 +239,7 @@ public class MainFrame extends JFrame {
 
     private boolean isUsernameTaken(String username) {
         try {
-            String query = "SELECT * FROM user WHERE username = ?";
+            String query = "SELECT * FROM users WHERE username = ?";
             boolean isTaken;
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 pstmt.setString(1, username);
@@ -244,7 +256,7 @@ public class MainFrame extends JFrame {
 
     private void registerUser(String username, String password) {
         try {
-            String query = "INSERT INTO user (username, password) VALUES (?, ?)";
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
           
                 PreparedStatement pstmt1 = conn.prepareStatement(query);
                 pstmt1.setString(1, username);

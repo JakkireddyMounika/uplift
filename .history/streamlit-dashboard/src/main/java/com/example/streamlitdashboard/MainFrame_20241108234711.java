@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -140,13 +141,37 @@ public class MainFrame extends JFrame {
     private void connectToDatabase() {
         try {
             Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite:mydb.db");
+            String dbUrl = "jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db";
+            conn = DriverManager.getConnection(dbUrl);
+            
+            if (conn != null) {
+                System.out.println("Connected to SQLite database.");
+                createUsersTable(); // Call table creation here after successful connection
+            }
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error connecting to database");
             System.exit(1);
         }
     }
+    
+
+    /* Create 'users' table if it doesn't exist
+    private void createUsersTable() {
+        try {
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS users ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "username TEXT NOT NULL UNIQUE, "
+                    + "password TEXT NOT NULL)";
+            try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)) {
+                pstmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.out.println("Error creating table: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error setting up database table");
+            System.exit(1);
+        }
+    }*/
 
     private void login() {
         String username = loginUsernameField.getText();
@@ -159,8 +184,12 @@ public class MainFrame extends JFrame {
 
         if (authenticateUser(username, password)) {
             JOptionPane.showMessageDialog(this, "Login successful!");
-            ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java"+"java -cp . com.example.streamlitdashboard.StreamlitDashboard");
-            pb.start();
+            try {
+                ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java", "java -cp . com.example.streamlitdashboard.StreamlitDashboard");
+                pb.start();
+            } catch (IOException ex) {
+                System.err.println("Error after login: " + ex.getMessage());
+            }
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password");
         }
@@ -168,7 +197,7 @@ public class MainFrame extends JFrame {
 
     private void register() {
         String username = registerUsernameField.getText();
-        String password = new String(registerPasswordField.getPassword());
+        String password = registerPasswordField.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter both username and password");
@@ -186,13 +215,16 @@ public class MainFrame extends JFrame {
 
     private boolean authenticateUser(String username, String password) {
         try {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
+            String query = "SELECT * FROM user WHERE username = ? AND password = ?";
+            boolean isAuthenticated;
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    isAuthenticated = rs.next();
+                }
+            }
+            return isAuthenticated;
         } catch (SQLException e) {
             System.out.println("Error authenticating user: " + e.getMessage());
             return false;
@@ -201,12 +233,15 @@ public class MainFrame extends JFrame {
 
     private boolean isUsernameTaken(String username) {
         try {
-            String query = "SELECT * FROM users WHERE username = ?";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, username);
-
-            ResultSet rs = pstmt.executeQuery();
-            return rs.next();
+            String query = "SELECT * FROM user WHERE username = ?";
+            boolean isTaken;
+            try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                pstmt.setString(1, username);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    isTaken = rs.next();
+                }
+            }
+            return isTaken;
         } catch (SQLException e) {
             System.out.println("Error checking if username is taken: " + e.getMessage());
             return false;
@@ -215,12 +250,14 @@ public class MainFrame extends JFrame {
 
     private void registerUser(String username, String password) {
         try {
-            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
-            PreparedStatement pstmt = conn.prepareStatement(query);
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
+            String query = "INSERT INTO user (username, password) VALUES (?, ?)";
+          
+                PreparedStatement pstmt1 = conn.prepareStatement(query);
+                pstmt1.setString(1, username);
+                pstmt1.setString(2, password);
+                pstmt1.executeUpdate();
+            }
+        catch (SQLException e) {
             System.out.println("Error registering user: " + e.getMessage());
         }
     }
@@ -230,3 +267,6 @@ public class MainFrame extends JFrame {
         mainFrame.setVisible(true);
     }
 }
+
+
+/*java -cp "bin;lib/sqlite-jdbc-3.46.1.3.jar" com.example.streamlitdashboard.MainFrame */

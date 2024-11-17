@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-
 public class MainFrame extends JFrame {
     JPanel mainPanel;
     CardLayout cardLayout;
@@ -187,35 +186,24 @@ public class MainFrame extends JFrame {
         }
 
         if (authenticateUser(username, password)) {
-            // Show login success message and wait for "OK" press
-            int response = JOptionPane.showConfirmDialog(
-                    this,
-                    "Login successful!",
-                    "Success",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-    
-            // If the user presses "OK" (response == JOptionPane.OK_OPTION), start the Java process
-            if (response == JOptionPane.OK_OPTION) {
-                // Run the Java file compilation and execution in a new thread
-                compileAndRunJava();
-            }
+            JOptionPane.showMessageDialog(this, "Login successful!");
+                ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java", "java -cp . com.example.streamlitdashboard.StreamlitDashboard");
+                pb.start();
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password");
         }
     }
 
-    private void compileAndRunJava() throws IOException {
-            // Compile the Java file
-            ProcessBuilder compilePb = new ProcessBuilder("javac", "StreamlitDashboard.java");
-            compilePb.start();
-            // Run the compiled Java class
-            ProcessBuilder runPb = new ProcessBuilder("java", "-cp", ".", "com.example.streamlitdashboard.StreamlitDashboard");
-            runPb.start();
-            
-            // Wait for the execution to finish
+    private void startStreamlitServer() {
+        try {
+            ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java\", \"java -cp . com.example.streamlitdashboard.StreamlitDashboard"); // Replace with actual path
+            pb.start();
+        } catch (IOException e) {
+            System.out.println("Error starting Streamlit server: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Could not start Streamlit server");
         }
+    }
+
     private void register() {
         String username = registerUsernameField.getText();
         String password = registerPasswordField.getText();
@@ -288,8 +276,6 @@ public class MainFrame extends JFrame {
         mainFrame.setVisible(true);
     }
 }
-
-
 
 
 /*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example\streamlitdashboard

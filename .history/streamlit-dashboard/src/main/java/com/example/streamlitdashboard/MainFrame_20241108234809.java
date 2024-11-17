@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-
 public class MainFrame extends JFrame {
     JPanel mainPanel;
     CardLayout cardLayout;
@@ -77,10 +76,7 @@ public class MainFrame extends JFrame {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    login();
-                } catch (IOException ex) {
-                }
+                login();
             }
         });
 
@@ -177,7 +173,7 @@ public class MainFrame extends JFrame {
         }
     }*/
 
-    private void login() throws IOException {
+    private void login() {
         String username = loginUsernameField.getText();
         String password = new String(loginPasswordField.getPassword());
 
@@ -187,35 +183,18 @@ public class MainFrame extends JFrame {
         }
 
         if (authenticateUser(username, password)) {
-            // Show login success message and wait for "OK" press
-            int response = JOptionPane.showConfirmDialog(
-                    this,
-                    "Login successful!",
-                    "Success",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-    
-            // If the user presses "OK" (response == JOptionPane.OK_OPTION), start the Java process
-            if (response == JOptionPane.OK_OPTION) {
-                // Run the Java file compilation and execution in a new thread
-                compileAndRunJava();
+            JOptionPane.showMessageDialog(this, "Login successful!");
+            try {
+                ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java", "java -cp . com.example.streamlitdashboard.StreamlitDashboard");
+                pb.start();
+            } catch (IOException ex) {
+                System.err.println("Error after login: " + ex.getMessage());
             }
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password");
         }
     }
 
-    private void compileAndRunJava() throws IOException {
-            // Compile the Java file
-            ProcessBuilder compilePb = new ProcessBuilder("javac", "StreamlitDashboard.java");
-            compilePb.start();
-            // Run the compiled Java class
-            ProcessBuilder runPb = new ProcessBuilder("java", "-cp", ".", "com.example.streamlitdashboard.StreamlitDashboard");
-            runPb.start();
-            
-            // Wait for the execution to finish
-        }
     private void register() {
         String username = registerUsernameField.getText();
         String password = registerPasswordField.getText();
@@ -290,7 +269,5 @@ public class MainFrame extends JFrame {
 }
 
 
-
-
-/*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example\streamlitdashboard
+/*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example
 java -cp "bin;lib/sqlite-jdbc-3.46.1.3.jar" com.example.streamlitdashboard.MainFrame */

@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-
 public class MainFrame extends JFrame {
     JPanel mainPanel;
     CardLayout cardLayout;
@@ -206,16 +205,39 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void compileAndRunJava() throws IOException {
+    private void compileAndRunJava() {
+        try {
             // Compile the Java file
             ProcessBuilder compilePb = new ProcessBuilder("javac", "StreamlitDashboard.java");
-            compilePb.start();
+            compilePb.redirectErrorStream(true); // Combine stdout and stderr
+            Process compileProcess = compilePb.start();
+            
+            // Wait for the compilation to finish
+            int compileExitCode = compileProcess.waitFor();
+            if (compileExitCode != 0) {
+                // Compilation failed, read the error output
+                String errorOutput = new String(compileProcess.getInputStream().readAllBytes());
+                JOptionPane.showMessageDialog(this, "Compilation failed:\n" + errorOutput);
+                return;
+            }
+    
             // Run the compiled Java class
             ProcessBuilder runPb = new ProcessBuilder("java", "-cp", ".", "com.example.streamlitdashboard.StreamlitDashboard");
-            runPb.start();
+            runPb.redirectErrorStream(true); // Combine stdout and stderr
+            Process runProcess = runPb.start();
             
             // Wait for the execution to finish
+            int runExitCode = runProcess.waitFor();
+            if (runExitCode != 0) {
+                // Execution failed, read the error output
+                String errorOutput = new String(runProcess.getInputStream().readAllBytes());
+                JOptionPane.showMessageDialog(this, "Execution failed:\n" + errorOutput);
+            }
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Error compiling or running Java file: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error executing Java file");
         }
+    }
     private void register() {
         String username = registerUsernameField.getText();
         String password = registerPasswordField.getText();
@@ -288,8 +310,6 @@ public class MainFrame extends JFrame {
         mainFrame.setVisible(true);
     }
 }
-
-
 
 
 /*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example\streamlitdashboard

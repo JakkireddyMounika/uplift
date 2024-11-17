@@ -141,15 +141,22 @@ public class MainFrame extends JFrame {
     private void connectToDatabase() {
         try {
             Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db");
-            createUsersTable(); // Create table if it doesn't exist
+            String dbUrl = "jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db";
+            conn = DriverManager.getConnection(dbUrl);
+            createUsersTable();
+            
+            if (conn != null) {
+                System.out.println("Connected to SQLite database.");
+                createUsersTable(); // Call table creation here after successful connection
+            }
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error connecting to database");
             System.exit(1);
         }
     }
-
+    
+    
     // Create 'users' table if it doesn't exist
     private void createUsersTable() {
         try {
@@ -159,6 +166,7 @@ public class MainFrame extends JFrame {
                     + "password TEXT NOT NULL)";
             try (PreparedStatement pstmt = conn.prepareStatement(createTableSQL)) {
                 pstmt.executeUpdate();
+                System.out.println("Table 'users' is set up.");
             }
         } catch (SQLException e) {
             System.out.println("Error creating table: " + e.getMessage());
@@ -166,6 +174,7 @@ public class MainFrame extends JFrame {
             System.exit(1);
         }
     }
+    
 
     private void login() {
         String username = loginUsernameField.getText();

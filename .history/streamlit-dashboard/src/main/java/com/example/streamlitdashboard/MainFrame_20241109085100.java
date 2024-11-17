@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-
 public class MainFrame extends JFrame {
     JPanel mainPanel;
     CardLayout cardLayout;
@@ -199,23 +198,27 @@ public class MainFrame extends JFrame {
             // If the user presses "OK" (response == JOptionPane.OK_OPTION), start the Java process
             if (response == JOptionPane.OK_OPTION) {
                 // Run the Java file compilation and execution in a new thread
-                compileAndRunJava();
+                new Thread(this::compileAndRunJava).start();
             }
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password");
         }
     }
 
-    private void compileAndRunJava() throws IOException {
+    private void compileAndRunJava() {
+        try {
             // Compile the Java file
             ProcessBuilder compilePb = new ProcessBuilder("javac", "StreamlitDashboard.java");
             compilePb.start();
+    
             // Run the compiled Java class
             ProcessBuilder runPb = new ProcessBuilder("java", "-cp", ".", "com.example.streamlitdashboard.StreamlitDashboard");
             runPb.start();
-            
-            // Wait for the execution to finish
+        } catch (IOException e) {
+            System.out.println("Error compiling or running Java file: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error executing Java file");
         }
+    }
     private void register() {
         String username = registerUsernameField.getText();
         String password = registerPasswordField.getText();
@@ -288,8 +291,6 @@ public class MainFrame extends JFrame {
         mainFrame.setVisible(true);
     }
 }
-
-
 
 
 /*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example\streamlitdashboard

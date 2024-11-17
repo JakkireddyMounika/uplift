@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-
 public class MainFrame extends JFrame {
     JPanel mainPanel;
     CardLayout cardLayout;
@@ -77,10 +76,7 @@ public class MainFrame extends JFrame {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    login();
-                } catch (IOException ex) {
-                }
+                login();
             }
         });
 
@@ -144,14 +140,19 @@ public class MainFrame extends JFrame {
 
     private void connectToDatabase() {
         try {
+            // Load the SQLite JDBC driver
             Class.forName("org.sqlite.JDBC");
+            
+            // Define database URL - this will create the file if it does not exist
             String dbUrl = "jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db";
             conn = DriverManager.getConnection(dbUrl);
-            
+    
+            // Check if connection was successful
             if (conn != null) {
-                System.out.println("Connected to SQLite database.");
- // Call table creation here after successful connection
+                System.out.println("Connected to SQLite database (or created a new one if it didn't exist).");
+                createUsersTable(); // Create 'users' table if it doesn't exist
             }
+    
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error connecting to database");
@@ -159,8 +160,7 @@ public class MainFrame extends JFrame {
         }
     }
     
-
-    /* Create 'users' table if it doesn't exist
+    // Create 'users' table if it doesn't exist
     private void createUsersTable() {
         try {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS users ("
@@ -175,9 +175,9 @@ public class MainFrame extends JFrame {
             JOptionPane.showMessageDialog(this, "Error setting up database table");
             System.exit(1);
         }
-    }*/
+    }
 
-    private void login() throws IOException {
+    private void login() {
         String username = loginUsernameField.getText();
         String password = new String(loginPasswordField.getPassword());
 
@@ -187,35 +187,18 @@ public class MainFrame extends JFrame {
         }
 
         if (authenticateUser(username, password)) {
-            // Show login success message and wait for "OK" press
-            int response = JOptionPane.showConfirmDialog(
-                    this,
-                    "Login successful!",
-                    "Success",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-    
-            // If the user presses "OK" (response == JOptionPane.OK_OPTION), start the Java process
-            if (response == JOptionPane.OK_OPTION) {
-                // Run the Java file compilation and execution in a new thread
-                compileAndRunJava();
+            JOptionPane.showMessageDialog(this, "Login successful!");
+            try {
+                ProcessBuilder pb = new ProcessBuilder("javac StreamlitDashboard.java", "java -cp . com.example.streamlitdashboard.StreamlitDashboard");
+                pb.start();
+            } catch (IOException ex) {
+                System.err.println("Error after login: " + ex.getMessage());
             }
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password");
         }
     }
 
-    private void compileAndRunJava() throws IOException {
-            // Compile the Java file
-            ProcessBuilder compilePb = new ProcessBuilder("javac", "StreamlitDashboard.java");
-            compilePb.start();
-            // Run the compiled Java class
-            ProcessBuilder runPb = new ProcessBuilder("java", "-cp", ".", "com.example.streamlitdashboard.StreamlitDashboard");
-            runPb.start();
-            
-            // Wait for the execution to finish
-        }
     private void register() {
         String username = registerUsernameField.getText();
         String password = registerPasswordField.getText();
@@ -236,7 +219,7 @@ public class MainFrame extends JFrame {
 
     private boolean authenticateUser(String username, String password) {
         try {
-            String query = "SELECT * FROM user WHERE username = ? AND password = ?";
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
             boolean isAuthenticated;
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 pstmt.setString(1, username);
@@ -254,7 +237,7 @@ public class MainFrame extends JFrame {
 
     private boolean isUsernameTaken(String username) {
         try {
-            String query = "SELECT * FROM user WHERE username = ?";
+            String query = "SELECT * FROM users WHERE username = ?";
             boolean isTaken;
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 pstmt.setString(1, username);
@@ -271,7 +254,7 @@ public class MainFrame extends JFrame {
 
     private void registerUser(String username, String password) {
         try {
-            String query = "INSERT INTO user (username, password) VALUES (?, ?)";
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
           
                 PreparedStatement pstmt1 = conn.prepareStatement(query);
                 pstmt1.setString(1, username);
@@ -290,7 +273,4 @@ public class MainFrame extends JFrame {
 }
 
 
-
-
-/*C:\Users\syeda\OneDrive\Desktop\pas\Uplift\streamlit-dashboard\src\main\java\com\example\streamlitdashboard
-java -cp "bin;lib/sqlite-jdbc-3.46.1.3.jar" com.example.streamlitdashboard.MainFrame */
+/*java -cp "bin;lib/sqlite-jdbc-3.46.1.3.jar" com.example.streamlitdashboard.MainFrame */

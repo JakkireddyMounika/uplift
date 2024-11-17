@@ -141,15 +141,21 @@ public class MainFrame extends JFrame {
     private void connectToDatabase() {
         try {
             Class.forName("org.sqlite.JDBC");
-            conn = DriverManager.getConnection("jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db");
-            createUsersTable(); // Create table if it doesn't exist
+            String dbUrl = "jdbc:sqlite:C:\\Users\\syeda\\OneDrive\\Desktop\\pas\\Uplift\\streamlit-dashboard\\db\\mydb.db";
+            conn = DriverManager.getConnection(dbUrl);
+            
+            if (conn != null) {
+                System.out.println("Connected to SQLite database.");
+                createUsersTable(); // Call table creation here after successful connection
+            }
         } catch (SQLException | ClassNotFoundException e) {
             System.out.println("Error connecting to database: " + e.getMessage());
             JOptionPane.showMessageDialog(this, "Error connecting to database");
             System.exit(1);
         }
     }
-
+    
+    
     // Create 'users' table if it doesn't exist
     private void createUsersTable() {
         try {
@@ -227,7 +233,7 @@ public class MainFrame extends JFrame {
 
     private boolean isUsernameTaken(String username) {
         try {
-            String query = "SELECT * FROM user WHERE username = ?";
+            String query = "SELECT * FROM users WHERE username = ?";
             boolean isTaken;
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
                 pstmt.setString(1, username);
@@ -244,7 +250,7 @@ public class MainFrame extends JFrame {
 
     private void registerUser(String username, String password) {
         try {
-            String query = "INSERT INTO user (username, password) VALUES (?, ?)";
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
           
                 PreparedStatement pstmt1 = conn.prepareStatement(query);
                 pstmt1.setString(1, username);
